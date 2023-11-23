@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  input-pod:
+    image: ariqbasyar/fogverse:input
+    volumes:
+      - ./logs/:/app/logs/
+      - ./val2017/:/app/val2017/
+      - ./images.txt/:/app/images.txt/
+    environment:
+    - CLOUD_KAFKA=${CLOUD_KAFKA}
+    - LOCAL_KAFKA=${LOCAL_KAFKA}
+    - SCENARIO=4
+    - CAM_ID=1
+    # devices:
+    # - /dev/video0:/dev/video0
+    extra_hosts:
+    - kafka-server:${CLOUD_KAFKA}

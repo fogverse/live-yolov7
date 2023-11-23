@@ -1,0 +1,4 @@
+[submodule "fogverse"]
+    ignore = dirty
+    path = fogverse
+    url = https://github.com/fogverse/fogverse.git
