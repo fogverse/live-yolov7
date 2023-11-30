@@ -191,3 +191,4 @@ logs/
 val2017.zip
 self-study/
 temp/
+*.pt
