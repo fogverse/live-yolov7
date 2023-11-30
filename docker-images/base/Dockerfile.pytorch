@@ -1,4 +1,5 @@
-FROM ariqbasyar/opencv:v4.8.1.78-py3.9.18
+ARG DREG
+FROM ${DREG}ariqbasyar/opencv:v4.8.1.78-py3.9.18
 
 RUN --mount=type=cache,target=/var/cache/apt_update apt-get update \
     && apt-get install -y --no-install-recommends \
