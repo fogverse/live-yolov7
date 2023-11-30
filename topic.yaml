@@ -1,0 +1,21 @@
+server:
+  local_kafka: $LOCAL_KAFKA
+
+topic:
+  input:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 5000
+      segment.bytes: 9300000
+      segment.ms: 3200
+      # max.message.bytes: 10485880
+  result:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 7000
+      segment.bytes: 10000000
+      segment.ms: 2000
