@@ -4,8 +4,7 @@ import torch
 
 import numpy as np
 
-from fogverse import Consumer, Producer, ConsumerStorage
-from fogverse.logging.logging import CsvLogging
+from fogverse import Consumer, Producer, ConsumerStorage, CsvLogging
 
 ENCODING = os.getenv('ENCODING', 'jpg')
 MODEL = os.getenv('MODEL', 'yolo7crowdhuman.pt')
