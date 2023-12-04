@@ -39,8 +39,16 @@ class MyResultStorage(CsvLogging, Consumer):
         CsvLogging.__init__(self)
         Consumer.__init__(self,loop=loop)
 
-    def send(self, data):
+    def _send(self, data):
         self.vid_cap.write(data)
+
+    async def send(self, data):
+        return await self._loop.run_in_executor(None, self._send,
+                                                data)
+
+    async def _close(self):
+        self.vid_cap.release()
+        await super()._close()
 
 async def main():
     producer = MyFrameProducer()
