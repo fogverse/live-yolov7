@@ -14,5 +14,3 @@ services:
     command: ['producer.py']
     env_file: .docker-compose.env
     network_mode: host
-    environment:
-    - CAM_ID=1
