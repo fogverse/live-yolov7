@@ -2,20 +2,12 @@ version: '3'
 
 services:
   jetson-pod:
-    image: ariqbasyar/fogverse:inference-gpu-jetson-sm
+    image: ariqbasyar/fogbus2-fogverse:CCTVInference
     volumes:
-      - ./logs/:/app/logs/
-      - ./yolov5-6.0/:/app/yolov5/
-    environment:
-    - CONSUMER_SERVERS=${LOCAL_KAFKA}
-    - PRODUCER_SERVERS=${LOCAL_KAFKA}
-    - SCENARIO=4
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.75'
-          memory: 2800M
-        reservations:
-          devices:
-            - capabilities: [gpu]
+      - ./logs/:/workplace/fogverse-app/logs/
+      - ./yolov7/:/workplace/fogverse-app/yolov7/
+      - ./yolov7crowdhuman.pt:/workplace/fogverse-app/yolov7crowdhuman.pt
+    working_dir: /workplace/fogverse-app
+    command: ['inference.py']
+    env_file: .docker-compose.env
+    network_mode: host
