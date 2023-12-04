@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  jetson-pod:
+  executor-pod:
     image: ariqbasyar/fogbus2-fogverse:CCTVInference
     volumes:
       - ./logs/:/workplace/fogverse-app/logs/
