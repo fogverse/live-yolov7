@@ -2,11 +2,10 @@ version: '3'
 
 services:
   executor-pod:
-    image: ariqbasyar/fogbus2-fogverse:CCTVInference
+    image: ${DREG}ariqbasyar/fogbus2-fogverse:CCTVInference
     volumes:
       - ./logs/:/workplace/fogverse-app/logs/
-      - ./yolov7/:/workplace/fogverse-app/yolov7/
-      - ./yolov7crowdhuman.pt:/workplace/fogverse-app/yolov7crowdhuman.pt
+      - ./yolo7crowdhuman.pt:/workplace/fogverse-app/yolo7crowdhuman.pt
     working_dir: /workplace/fogverse-app
     command: ['inference.py']
     env_file: .docker-compose.env
