@@ -1,13 +1,24 @@
-import os
 import asyncio
+import os
+import re
 import torch
 
 import numpy as np
 
 from fogverse import Consumer, Producer, ConsumerStorage, CsvLogging
 
+from pathlib import Path
+
 ENCODING = os.getenv('ENCODING', 'jpg')
 MODEL = os.getenv('MODEL', 'yolo7crowdhuman.pt')
+
+def get_csv_file_folder(cls: object):
+    device = Path(os.getenv('DEVICE'))
+    csv_file = f'{cls.__class__.__name__}_{device.stem}.csv'
+    csv_folder = re.sub('^(\d{2})-(\d{2})-\d{2}_(\d{2})-(\d{2})-\d{2}',
+                        '\g<1>\g<2>-\g<3>\g<4>', device.stem)
+    csv_folder = 'logs' / Path(csv_folder)
+    return csv_file, csv_folder
 
 class MyStorage(Consumer, ConsumerStorage):
     def __init__(self, keep_messages=False):
@@ -24,7 +35,9 @@ class MyExecutor(CsvLogging, Producer):
         self.producer_topic = 'result'
         self.consumer = consumer
         self.encode_encoding = 'jpg'
-        CsvLogging.__init__(self)
+
+        csv_file, csv_folder = get_csv_file_folder(self)
+        CsvLogging.__init__(self, filename=csv_file, dirname=csv_folder)
         Producer.__init__(self)
 
     async def _after_start(self):
