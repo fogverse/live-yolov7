@@ -3,8 +3,19 @@
 ARG DREG # docker registry
 FROM ${DREG}ariqbasyar/fogbus2-fogverse:base-user
 
+# FogBus2
+WORKDIR /workplace/fogbus2-app
+COPY FogBus2/containers/user/sources/requirementsDockerImage.txt .
+RUN pip install -r requirementsDockerImage.txt
+
+# Hostname
+RUN echo "User" > /etc/hostname
+
+COPY FogBus2/containers/user/sources/ .
+
+# FogVerse
 WORKDIR /workplace/fogverse-app
-COPY fogverse fogverse
-COPY input/producer.py .
+COPY live-yolov7/fogverse fogverse
+COPY live-yolov7/input/producer.py .
 
 ENTRYPOINT ["python", "-u"]
