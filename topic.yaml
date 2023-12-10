@@ -47,38 +47,38 @@ topic:
     server:
       - local_kafka
     config:
-      retention.ms: 7000
+      retention.ms: 14000
       segment.bytes: 10000000
-      segment.ms: 2000
+      segment.ms: 5000
   result_1150-1155:
     partitions: 1
     server:
       - local_kafka
     config:
-      retention.ms: 7000
+      retention.ms: 14000
       segment.bytes: 10000000
-      segment.ms: 2000
-  result-1250-1255:
+      segment.ms: 5000
+  result_1250-1255:
     partitions: 1
     server:
       - local_kafka
     config:
-      retention.ms: 7000
+      retention.ms: 14000
       segment.bytes: 10000000
-      segment.ms: 2000
+      segment.ms: 5000
   result_1610-1615:
     partitions: 1
     server:
       - local_kafka
     config:
-      retention.ms: 7000
+      retention.ms: 14000
       segment.bytes: 10000000
-      segment.ms: 2000
+      segment.ms: 5000
   result_1750-1755:
     partitions: 1
     server:
       - local_kafka
     config:
-      retention.ms: 7000
+      retention.ms: 14000
       segment.bytes: 10000000
-      segment.ms: 2000
+      segment.ms: 5000
