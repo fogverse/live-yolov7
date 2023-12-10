@@ -2,12 +2,22 @@ import json
 import os
 import re
 import sys
-import time
+import shutil
 
 import pandas as pd
 
 from io import StringIO
 from pathlib import Path
+
+scheme_to_vid = {
+    '0940-0945':'09-40-00_09-45-00',
+    '1150-1155':'11-50-00_11-55-00',
+    '1250-1255':'12-50-00_12-55-00',
+    '1610-1615':'16-10-00_16-15-00',
+    '1750-1755':'17-50-00_17-55-00',
+}
+
+vid_to_scheme = dict((v,k) for k, v in scheme_to_vid.items())
 
 def append_with_title(filepath: Path, title, data):
     with filepath.open('a') as f:
@@ -198,9 +208,37 @@ def read_fogbus(filepath: Path, filepath_csv: Path, scheme_filters: list):
 
     read_docker(filepath, filepath_csv)
 
+def move_log_files(move_to: Path):
+    ask_move = input('Do you also want to copy csv log files? [y/N] ')
+    if ask_move.lower() not in ['y', 'yes', '1']: return
+
+    _input_component = Path('input')
+    _executor_component = Path('executor')
+    vs = int(move_to.parent.name.split('vs')[0])
+
+    for scheme in list(scheme_to_vid.keys())[:vs]:
+        scheme_folder = (move_to / scheme)
+        scheme_folder.mkdir(exist_ok=True)
+        for log_file in (_input_component / 'logs' / scheme).iterdir():
+            _match = re.match('^My\w+_(\d{4}-\d{4}).csv$', log_file.name)
+            if not _match or _match.group(1) != scheme: continue
+            shutil.move(str(log_file.resolve()), str(scheme_folder.resolve()))
+
+        for log_file in (_executor_component / 'logs' / scheme).iterdir():
+            _match = re.match('^My\w+_(\d{4}-\d{4}).csv$', log_file.name)
+            if not _match or _match.group(1) != scheme: continue
+            shutil.move(str(log_file.resolve()), str(scheme_folder.resolve()))
+
+        for vid_result in (_input_component / 'results').iterdir():
+            _match = re.match('^(.+)-result.mp4$',
+                              vid_result.name)
+            if not _match or _match.group(1) != scheme_to_vid[scheme]: continue
+            shutil.move(str(vid_result.resolve()), str(scheme_folder.resolve()))
+
 def read_fogverse(filepath: Path, filepath_csv: Path):
     filepath_csv.write_text('')
     read_docker(filepath, filepath_csv)
+    move_log_files(filepath.parent)
 
 if __name__ == '__main__':
     filepath = Path(sys.argv[1])
@@ -223,5 +261,5 @@ if __name__ == '__main__':
         if ans.lower() not in ['', 'y', 'yes', '1']:
             print('bye')
             sys.exit()
-    read_fogbus(filepath, filepath_csv, scheme_filters)
-    # read_fogverse(filepath, filepath_csv)
+    # read_fogbus(filepath, filepath_csv, scheme_filters)
+    read_fogverse(filepath, filepath_csv)
