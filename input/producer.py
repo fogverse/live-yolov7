@@ -1,30 +1,25 @@
 import asyncio
 import cv2
 import os
-import re
 
 from pathlib import Path
 from fogverse import Producer, CsvLogging, Consumer, OpenCVConsumer
 from fogverse.util import (get_cam_id, get_timestamp_str)
 
-def get_csv_file_folder(cls: object):
-    device = Path(os.getenv('DEVICE'))
-    csv_file = f'{cls.__class__.__name__}_{device.stem}.csv'
-    csv_folder = re.sub('^(\d{2})-(\d{2})-\d{2}_(\d{2})-(\d{2})-\d{2}',
-                        '\g<1>\g<2>-\g<3>\g<4>', device.stem)
-    csv_folder = 'logs' / Path(csv_folder)
-    return csv_file, csv_folder
+SCHEME = os.getenv('SCHEME', '1250-1255')
+
+CSV_DIR = Path('logs') / SCHEME
 
 class MyFrameProducer(CsvLogging, OpenCVConsumer, Producer):
     def __init__(self, loop=None):
         self.cam_id = get_cam_id()
-        self.producer_topic = 'input'
+        self.producer_topic = f'input_{SCHEME}'
         self.auto_decode = False
         self.frame_idx = 1
         self.encode_encoding = 'jpg'
 
-        csv_file, csv_folder = get_csv_file_folder(self)
-        CsvLogging.__init__(self, filename=csv_file, dirname=csv_folder)
+        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
+        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
         OpenCVConsumer.__init__(self,loop=loop,executor=None)
         Producer.__init__(self,loop=loop)
 
@@ -39,7 +34,7 @@ class MyFrameProducer(CsvLogging, OpenCVConsumer, Producer):
 
 class MyResultStorage(CsvLogging, Consumer):
     def __init__(self, loop=None):
-        self.consumer_topic = 'result'
+        self.consumer_topic = [f'result_{SCHEME}']
         self.auto_encode = False
 
         vid = Path(os.getenv('DEVICE'))
@@ -48,8 +43,8 @@ class MyResultStorage(CsvLogging, Consumer):
                             cv2.VideoWriter_fourcc(*'mp4v'),
                             25, (1920,1080))
 
-        csv_file, csv_folder = get_csv_file_folder(self)
-        CsvLogging.__init__(self, filename=csv_file, dirname=csv_folder)
+        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
+        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
         Consumer.__init__(self,loop=loop)
 
     async def _send(self, data, *args, **kwargs):

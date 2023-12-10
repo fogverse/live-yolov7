@@ -1,28 +1,23 @@
 import asyncio
 import os
-import re
 import torch
 
 import numpy as np
 
-from fogverse import Consumer, Producer, ConsumerStorage, CsvLogging
-
 from pathlib import Path
+from fogverse import Consumer, Producer, ConsumerStorage, CsvLogging
 
 ENCODING = os.getenv('ENCODING', 'jpg')
 MODEL = os.getenv('MODEL', 'yolo7crowdhuman.pt')
+SCHEME = os.getenv('SCHEME', '1250-1255')
 
-def get_csv_file_folder(cls: object):
-    device = Path(os.getenv('DEVICE'))
-    csv_file = f'{cls.__class__.__name__}_{device.stem}.csv'
-    csv_folder = re.sub('^(\d{2})-(\d{2})-\d{2}_(\d{2})-(\d{2})-\d{2}',
-                        '\g<1>\g<2>-\g<3>\g<4>', device.stem)
-    csv_folder = 'logs' / Path(csv_folder)
-    return csv_file, csv_folder
+CSV_DIR = Path('logs') / SCHEME
 
-class MyStorage(Consumer, ConsumerStorage):
+class MyExecutorStorage(CsvLogging, Consumer, ConsumerStorage):
     def __init__(self, keep_messages=False):
-        self.consumer_topic = ['input']
+        self.consumer_topic = [f'input_{SCHEME}']
+        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
+        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
         Consumer.__init__(self)
         ConsumerStorage.__init__(self, keep_messages=keep_messages)
 
@@ -32,12 +27,12 @@ class MyExecutor(CsvLogging, Producer):
         # from commit 84932d70fb9e2932d0a70e4a1f02a1d6dd1dd6ca
         self.model = torch.hub.load('yolov7', 'custom',
                                     MODEL, source='local')
-        self.producer_topic = 'result'
+        self.producer_topic = f'result_{SCHEME}'
         self.consumer = consumer
         self.encode_encoding = 'jpg'
 
-        csv_file, csv_folder = get_csv_file_folder(self)
-        CsvLogging.__init__(self, filename=csv_file, dirname=csv_folder)
+        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
+        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
         Producer.__init__(self)
 
     async def _after_start(self):
@@ -61,7 +56,7 @@ class MyExecutor(CsvLogging, Producer):
                                                data)
 
 async def main():
-    consumer = MyStorage()
+    consumer = MyExecutorStorage()
     producer = MyExecutor(consumer)
     tasks = [consumer.run(), producer.run()]
     try:

@@ -2,7 +2,7 @@ server:
   local_kafka: $LOCAL_KAFKA
 
 topic:
-  input:
+  input_0940-0945:
     partitions: 1
     server:
       - local_kafka
@@ -10,8 +10,71 @@ topic:
       retention.ms: 5000
       segment.bytes: 9300000
       segment.ms: 3200
-      # max.message.bytes: 10485880
-  result:
+  input_1150-1155:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 5000
+      segment.bytes: 9300000
+      segment.ms: 3200
+  input_1250-1255:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 5000
+      segment.bytes: 9300000
+      segment.ms: 3200
+  input_1610-1615:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 5000
+      segment.bytes: 9300000
+      segment.ms: 3200
+  input_1750-1755:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 5000
+      segment.bytes: 9300000
+      segment.ms: 3200
+  result_0940-0945:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 7000
+      segment.bytes: 10000000
+      segment.ms: 2000
+  result_1150-1155:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 7000
+      segment.bytes: 10000000
+      segment.ms: 2000
+  result-1250-1255:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 7000
+      segment.bytes: 10000000
+      segment.ms: 2000
+  result_1610-1615:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 7000
+      segment.bytes: 10000000
+      segment.ms: 2000
+  result_1750-1755:
     partitions: 1
     server:
       - local_kafka
