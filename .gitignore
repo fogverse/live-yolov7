@@ -193,3 +193,5 @@ self-study/
 temp/
 *.pt
 *.mp4
+analysis
+analysis*.tar*
