@@ -10,3 +10,8 @@ services:
     command: ['inference.py']
     env_file: .docker-compose.env
     network_mode: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
