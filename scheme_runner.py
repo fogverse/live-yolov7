@@ -33,6 +33,7 @@ if __name__ == '__main__':
             scheme = scheme_mapper = vid_to_scheme[vid.stem]
             executor_cmd = f'cd {comp}; '\
                            f'SCHEME={scheme} ' \
+                           f'VS={scheme_num} ' \
                            f'GROUP_ID=group-{scheme}-{i} ' \
                            f'DEVICE=videos/{vid} ' \
                            f'docker-compose -p {comp}_{scheme} up -d'

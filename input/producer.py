@@ -7,6 +7,7 @@ from fogverse import Producer, CsvLogging, Consumer, OpenCVConsumer
 from fogverse.util import (get_cam_id, get_timestamp_str)
 
 SCHEME = os.getenv('SCHEME', '1250-1255')
+VS = int(os.getenv('VS', '1'))
 
 CSV_DIR = Path('logs') / SCHEME
 
@@ -41,7 +42,7 @@ class MyResultStorage(CsvLogging, Consumer):
         self.vid_cap = cv2.VideoWriter(
                             f'results/{vid.stem}-result{vid.suffix}',
                             cv2.VideoWriter_fourcc(*'mp4v'),
-                            25, (1920,1080))
+                            25/VS, (1920,1080))
 
         csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
         CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
