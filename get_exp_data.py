@@ -123,7 +123,22 @@ def read_docker_stat(filepath: Path):
             _df.drop(null_index, inplace=True)
         _df['NAME'] = _df['NAME'].apply(lambda x:
             re.sub('^(CCTVInference-\d+).*Actor-(\d+).*$', 'TaskExecutor-\g<1>-\g<2>', x))
-        _df['NAME'] = _df['NAME'].apply(lambda x: x.split('_')[0].rstrip('-'))
+        if filepath.parent.name == 'fogbus2':
+            _df['NAME'] = _df['NAME'].apply(lambda x: x.split('_')[0].rstrip('-'))
+        elif filepath.parent.name == 'fogverse':
+            _df['NAME'] = _df['NAME'].str.replace(r'-executor-pod-\d+','',
+                                                  regex=True)
+            _df['NAME'] = _df['NAME'].str.replace(r'(executor_\d{4}-\d{4})',
+                                                  r'fogverse-\g<1>',regex=True)
+
+            _df['NAME'] = _df['NAME'].str.replace(r'-input-pod-\d+','',
+                                                  regex=True)
+            _df['NAME'] = _df['NAME'].str.replace(r'input_(\d{4}-\d{4})',
+                                                  r'fogverse-producer_\g<1>',
+                                                  regex=True)
+
+            _df['NAME'] = _df['NAME'].str.replace(r'-kafka-broker-\d+','',
+                                                  regex=True)
         df = pd.concat([df,_df], axis=0)
     pd.options.display.max_colwidth = 100
     df.columns = df.columns.str.lower()
@@ -189,7 +204,9 @@ def read_fogverse(filepath: Path, filepath_csv: Path):
 
 if __name__ == '__main__':
     filepath = Path(sys.argv[1])
-    scheme_filters = sys.argv[2].split(',')
+    scheme_filters = []
+    if len(sys.argv) > 2:
+        scheme_filters = sys.argv[2].split(',')
     if filepath.stem == '.csv':
         raise Exception('Path is expected to be .txt extension file.')
     filepath_csv = filepath.with_suffix('.csv')
