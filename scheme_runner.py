@@ -40,4 +40,4 @@ if __name__ == '__main__':
             print(executor_cmd)
             os.system(executor_cmd)
         print('='*40)
-        time.sleep(5)
+        time.sleep(15)
