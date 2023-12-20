@@ -2,6 +2,14 @@ server:
   local_kafka: $LOCAL_KAFKA
 
 topic:
+  fogverse-profiling:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 25000
+      segment.bytes: 300000
+      segment.ms: 10000
   input_0940-0945:
     partitions: 1
     server:
