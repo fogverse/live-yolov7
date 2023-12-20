@@ -24,8 +24,8 @@ class MyExecutor(CsvLogging, Consumer, Producer):
         self.encode_encoding = 'jpg'
         self.always_read_last = True
 
-        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
-        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
+        csv_file = f'{self.__class__.__name__}_{SCHEME}'
+        CsvLogging.__init__(self, name=csv_file, dirname=CSV_DIR)
         Consumer.__init__(self)
         Producer.__init__(self)
 

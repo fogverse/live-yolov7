@@ -20,8 +20,8 @@ class MyFrameProducer(CsvLogging, OpenCVConsumer, Producer):
         self.frame_idx = 1
         self.encode_encoding = 'jpg'
 
-        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
-        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
+        csv_file = f'{self.__class__.__name__}_{SCHEME}'
+        CsvLogging.__init__(self, name=csv_file, dirname=CSV_DIR)
         OpenCVConsumer.__init__(self,loop=loop,executor=None)
         Producer.__init__(self,loop=loop)
 
@@ -45,8 +45,9 @@ class MyResultStorage(CsvLogging, Consumer):
                             cv2.VideoWriter_fourcc(*'mp4v'),
                             OUT_FRAMERATE, (1920,1080))
 
-        csv_file = f'{self.__class__.__name__}_{SCHEME}.csv'
-        CsvLogging.__init__(self, filename=csv_file, dirname=CSV_DIR)
+        csv_file = f'{self.__class__.__name__}_{SCHEME}'
+        CsvLogging.__init__(self, name=csv_file, dirname=CSV_DIR,
+                            remote_logging=True)
         Consumer.__init__(self,loop=loop)
 
     async def _send(self, data, *args, **kwargs):
@@ -64,11 +65,12 @@ async def main():
     producer = MyFrameProducer()
     result_storage = MyResultStorage()
     tasks = [producer.run(), result_storage.run()]
+    tasks = [asyncio.ensure_future(task) for task in tasks]
     try:
         await asyncio.gather(*tasks)
     except:
         for t in tasks:
-            t.close()
+            t.cancel()
 
 if __name__ == '__main__':
     asyncio.run(main())
