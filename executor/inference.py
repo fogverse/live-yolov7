@@ -5,7 +5,7 @@ import torch
 import numpy as np
 
 from pathlib import Path
-from fogverse import Consumer, Producer, CsvLogging
+from fogverse import Consumer, Producer, Profiling
 
 ENCODING = os.getenv('ENCODING', 'jpg')
 MODEL = os.getenv('MODEL', 'yolo7crowdhuman.pt')
@@ -13,7 +13,7 @@ SCHEME = os.getenv('SCHEME', '1250-1255')
 
 CSV_DIR = Path('logs') / SCHEME
 
-class MyExecutor(CsvLogging, Consumer, Producer):
+class MyExecutor(Profiling, Consumer, Producer):
     def __init__(self):
         # Using https://github.com/WongKinYiu/yolov7
         # from commit 84932d70fb9e2932d0a70e4a1f02a1d6dd1dd6ca
@@ -25,7 +25,7 @@ class MyExecutor(CsvLogging, Consumer, Producer):
         self.always_read_last = True
 
         csv_file = f'{self.__class__.__name__}_{SCHEME}'
-        CsvLogging.__init__(self, name=csv_file, dirname=CSV_DIR)
+        Profiling.__init__(self, name=csv_file, dirname=CSV_DIR)
         Consumer.__init__(self)
         Producer.__init__(self)
 

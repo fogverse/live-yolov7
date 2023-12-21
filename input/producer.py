@@ -3,7 +3,7 @@ import cv2
 import os
 
 from pathlib import Path
-from fogverse import Producer, CsvLogging, Consumer, OpenCVConsumer
+from fogverse import Producer, Profiling, Consumer, OpenCVConsumer
 from fogverse.util import (get_cam_id, get_timestamp_str)
 
 SCHEME = os.getenv('SCHEME', '1250-1255')
@@ -12,7 +12,7 @@ OUT_FRAMERATE = 25/(VS//2 + 1)
 
 CSV_DIR = Path('logs') / SCHEME
 
-class MyFrameProducer(CsvLogging, OpenCVConsumer, Producer):
+class MyFrameProducer(Profiling, OpenCVConsumer, Producer):
     def __init__(self, loop=None):
         self.cam_id = get_cam_id()
         self.producer_topic = f'input_{SCHEME}'
@@ -21,7 +21,7 @@ class MyFrameProducer(CsvLogging, OpenCVConsumer, Producer):
         self.encode_encoding = 'jpg'
 
         csv_file = f'{self.__class__.__name__}_{SCHEME}'
-        CsvLogging.__init__(self, name=csv_file, dirname=CSV_DIR)
+        Profiling.__init__(self, name=csv_file, dirname=CSV_DIR)
         OpenCVConsumer.__init__(self,loop=loop,executor=None)
         Producer.__init__(self,loop=loop)
 
@@ -34,7 +34,7 @@ class MyFrameProducer(CsvLogging, OpenCVConsumer, Producer):
         await super().send(data, key=key, headers=headers)
         self.frame_idx += 1
 
-class MyResultStorage(CsvLogging, Consumer):
+class MyResultStorage(Profiling, Consumer):
     def __init__(self, loop=None):
         self.consumer_topic = [f'result_{SCHEME}']
         self.auto_encode = False
@@ -46,7 +46,7 @@ class MyResultStorage(CsvLogging, Consumer):
                             OUT_FRAMERATE, (1920,1080))
 
         csv_file = f'{self.__class__.__name__}_{SCHEME}'
-        CsvLogging.__init__(self, name=csv_file, dirname=CSV_DIR,
+        Profiling.__init__(self, name=csv_file, dirname=CSV_DIR,
                             remote_logging=True)
         Consumer.__init__(self,loop=loop)
 
