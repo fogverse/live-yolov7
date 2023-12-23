@@ -8,7 +8,6 @@ services:
     working_dir: /workplace/fogverse-app
     command: ['inference.py']
     env_file: .docker-compose.env
-    network_mode: host
     deploy:
       resources:
         reservations:
