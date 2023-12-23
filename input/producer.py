@@ -20,8 +20,9 @@ class MyFrameProducer(Profiling, OpenCVConsumer, Producer):
         self.frame_idx = 1
         self.encode_encoding = 'jpg'
 
-        csv_file = f'{self.__class__.__name__}_{SCHEME}'
-        Profiling.__init__(self, name=csv_file, dirname=CSV_DIR)
+        profiling_name = f'{self.__class__.__name__}_{SCHEME}'
+        Profiling.__init__(self, name=profiling_name, dirname=CSV_DIR,
+                           remote_logging=True)
         OpenCVConsumer.__init__(self,loop=loop,executor=None)
         Producer.__init__(self,loop=loop)
 
@@ -45,9 +46,21 @@ class MyResultStorage(Profiling, Consumer):
                             cv2.VideoWriter_fourcc(*'mp4v'),
                             OUT_FRAMERATE, (1920,1080))
 
-        csv_file = f'{self.__class__.__name__}_{SCHEME}'
-        Profiling.__init__(self, name=csv_file, dirname=CSV_DIR,
-                            remote_logging=True)
+        profiling_name = f'{self.__class__.__name__}_{SCHEME}'
+        dreg = os.getenv('DREG')
+        image_name = f'{dreg}ariqbasyar/fogbus2-fogverse:CCTVInference'
+        self.extra_remote_data = {
+            'executor_name_pattern': f'MyExecutor_{SCHEME}',
+            'executor_image_name': image_name,
+            'env': {
+                'SCHEME': SCHEME,
+                'MODEL': 'yolo7tinycrowdhuman.pt',
+                'PRODUCER_SERVERS': os.getenv('PRODUCER_SERVERS'),
+                'CONSUMER_SERVERS': os.getenv('CONSUMER_SERVERS'),
+            }
+        }
+        Profiling.__init__(self, name=profiling_name, dirname=CSV_DIR,
+                           remote_logging=True)
         Consumer.__init__(self,loop=loop)
 
     async def _send(self, data, *args, **kwargs):

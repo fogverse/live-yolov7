@@ -24,8 +24,9 @@ class MyExecutor(Profiling, Consumer, Producer):
         self.encode_encoding = 'jpg'
         self.always_read_last = True
 
-        csv_file = f'{self.__class__.__name__}_{SCHEME}'
-        Profiling.__init__(self, name=csv_file, dirname=CSV_DIR)
+        profiling_name = f'{self.__class__.__name__}_{SCHEME}'
+        Profiling.__init__(self, name=profiling_name, dirname=CSV_DIR,
+                           remote_logging=True)
         Consumer.__init__(self)
         Producer.__init__(self)
 
