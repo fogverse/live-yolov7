@@ -27,6 +27,7 @@ vid_to_scheme = dict((v,k) for k, v in scheme_to_vid.items())
 if __name__ == '__main__':
     scheme_num = int(sys.argv[1])
     last = False
+
     for i in range(scheme_num):
         print('='*40)
         for j, comp in enumerate(components):
@@ -35,13 +36,11 @@ if __name__ == '__main__':
             executor_cmd = f'cd {comp}; '\
                            f'SCHEME={scheme} ' \
                            f'VS={scheme_num} ' \
-                           f'GROUP_ID=group-{scheme} ' \
                            f'DEVICE=videos/{vid} ' \
                            f'docker-compose -p {comp}_{scheme} up -d'
             print(executor_cmd)
             os.system(executor_cmd)
             if j != len(components) - 1:
                 time.sleep(15)
-        print('='*40)
         if i != scheme_num - 1:
-            time.sleep(30)
+            time.sleep(20)
