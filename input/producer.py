@@ -47,7 +47,7 @@ class MyResultStorage(Profiling, Consumer):
                             OUT_FRAMERATE, (1920,1080))
 
         profiling_name = f'{self.__class__.__name__}_{SCHEME}'
-        dreg = os.getenv('DREG')
+        dreg = os.getenv('DREG') or ''
         image_name = f'{dreg}ariqbasyar/fogbus2-fogverse:CCTVInference'
         self.extra_remote_data = {
             'executor_name_pattern': f'MyExecutor_{SCHEME}',
