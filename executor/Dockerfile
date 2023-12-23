@@ -19,5 +19,7 @@ RUN cp -r ../fogbus2-app/yolov7/ yolov7/
 
 COPY live-yolov7/fogverse/ fogverse/
 COPY live-yolov7/executor/inference.py .
+COPY live-yolov7/executor/yolo7crowdhuman.pt .
+COPY live-yolov7/executor/yolo7tinycrowdhuman.pt .
 
 ENTRYPOINT ["python", "-u"]

@@ -5,8 +5,6 @@ services:
     image: ${DREG}ariqbasyar/fogbus2-fogverse:CCTVInference
     volumes:
       - ./logs/:/workplace/fogverse-app/logs/
-      - ./yolo7crowdhuman.pt:/workplace/fogverse-app/yolo7crowdhuman.pt
-      - ./yolo7tinycrowdhuman.pt:/workplace/fogverse-app/yolo7tinycrowdhuman.pt
     working_dir: /workplace/fogverse-app
     command: ['inference.py']
     env_file: .docker-compose.env
