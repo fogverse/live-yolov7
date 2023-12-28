@@ -8,7 +8,15 @@ topic:
       - local_kafka
     config:
       retention.ms: 25000
-      segment.bytes: 300000
+      segment.bytes: 3000000
+      segment.ms: 10000
+  fogverse-commands:
+    partitions: 1
+    server:
+      - local_kafka
+    config:
+      retention.ms: 30000
+      segment.bytes: 1000000
       segment.ms: 10000
   input_0940-0945:
     partitions: 1
