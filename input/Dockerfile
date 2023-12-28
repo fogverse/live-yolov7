@@ -3,6 +3,8 @@
 ARG DREG # docker registry
 FROM ${DREG}ariqbasyar/fogbus2-fogverse:base-user
 
+RUN pip install confluent-kafka pyyaml
+
 # FogBus2
 WORKDIR /workplace/fogbus2-app
 COPY FogBus2/containers/user/sources/requirementsDockerImage.txt .
