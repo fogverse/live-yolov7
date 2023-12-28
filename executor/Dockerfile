@@ -1,6 +1,8 @@
 ARG DREG # docker registry
 FROM ${DREG}ariqbasyar/fogbus2-fogverse:base-CCTVInference
 
+RUN pip install confluent-kafka
+
 # FogBus2
 WORKDIR /workplace/fogbus2-app
 COPY FogBus2/containers/taskExecutor/sources/requirements.txt .
