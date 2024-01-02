@@ -59,16 +59,14 @@ class MyMasterProfiler(AbstractConsumer, AbstractProducer, Runnable):
     def __init__(self,
                  profiling_data: MySharedData,
                  metric_data: MySharedData,
-                 chosen_metric,
                  threshold,
                  loop=None):
         self.profiling_data = profiling_data
         self.metric_data = metric_data
-        self.chosen_metric = chosen_metric
         self.threshold = threshold
         self.auto_decode = False
         self.auto_encode = False
-        self.csv_header = ['component', 'where', self.chosen_metric]
+        self.csv_header = ['component', 'where', 'framerate (fps)']
         self.logger = FogVerseLogging(self.__class__.__name__,
                                     csv_header=self.csv_header,
                                     level=logging.FOGV_CSV)
@@ -79,46 +77,52 @@ class MyMasterProfiler(AbstractConsumer, AbstractProducer, Runnable):
         await asyncio.sleep(5)
         return self.profiling_data.data
 
-    def process_framerate(self, data):
-        framerates = []
-        for component, comp_data in data.items():
-            if comp_data.get('where') == FOGV_STATUS_RUN_IN_CLOUD: continue
-            if comp_data.get('status') == FOGV_STATUS_SHUTDOWN: continue
-            if comp_data.get('log data') is None: continue
-            if len(comp_data.get('log data', [])) < 20: continue
-            start = timestamp_to_datetime(comp_data['log data'][0][0])
-            end = timestamp_to_datetime(comp_data['log data'][-1][0])
-            duration = (end - start).total_seconds()
-            framerate = np.nan
-            if duration != 0:
-                framerate = len(comp_data['log data'])/duration
-                framerate = round(framerate, 2)
-            framerates.append(framerate)
-        return np.nanmean(framerates)
+    async def put_metric_data(self, component, data):
+        async with self.metric_data.lock:
+            self.metric_data.data[component] = data
 
-    def put_metric_data(self, key, data):
-        self.metric_data.data[key] = data
+    async def process_framerate(self, data):
+        async with self.profiling_data.lock:
+            for deploy_place in [FOGV_STATUS_RUN_IN_LOCAL,
+                                 FOGV_STATUS_RUN_IN_CLOUD]:
+                framerates = []
+                for component, comp_data in data.items():
+                    where = comp_data.get('where')
+                    status = comp_data.get('status')
+                    if where != deploy_place: continue
+                    if status == FOGV_STATUS_SHUTDOWN: continue
 
-    def log_metric_data(self, data):
-        log_data = []
-        for header in self.csv_header:
-            log_data.append(data[header])
-        self.logger.csv_log(log_data)
+                    log_data = comp_data.get('log data', [])
+                    if len(log_data) < 20: continue
+                    start = timestamp_to_datetime(log_data[0][0])
+                    end = timestamp_to_datetime(log_data[-1][0])
+                    duration = (end - start).total_seconds()
+                    framerate = np.nan
+                    if duration != 0:
+                        framerate = len(log_data)/duration
+                        framerate = round(framerate, 2)
+                    metric_data = [component, deploy_place, framerate]
+                    await self.put_metric_data((component, deploy_place),
+                                               metric_data)
+                    framerates.append(framerate)
+                avg = np.nanmean(framerates)
+                avg_metric_data = ['average framerate', deploy_place, avg]
+                await self.put_metric_data(('average framerate', deploy_place),
+                                           avg_metric_data)
+
+    async def log_metric_data(self, data):
+        async with self.metric_data.lock:
+            for row in data.values():
+                self.logger.csv_log(row)
+            print('Metric data:')
+            pp.pprint(data)
 
     async def process(self, data):
-        print('di dalam proses')
         print('Profiling data:')
         pp.pprint(data)
         if not data: return
-        framerate = np.nan
-        async with self.profiling_data.lock:
-            framerate = self.process_framerate(data)
-
-        async with self.metric_data.lock:
-            self.put_metric_data('framerate (fps)', framerate)
-            self.log_metric_data(self.metric_data.data)
-            print('Metric data:')
-            pp.pprint(self.metric_data.data)
+        await self.process_framerate(data)
+        await self.log_metric_data(self.metric_data.data)
 
     async def send(self, *args, **kwargs):
         pass
@@ -127,13 +131,11 @@ class MyMasterCommandListener(Consumer):
     def __init__(self,
                  profiling_data: MySharedData,
                  metric_data: MySharedData,
-                 chosen_metric,
                  threshold,
                  compare=operator.gt,
                  loop=None):
         self.profiling_data = profiling_data
         self.metric_data = metric_data
-        self.chosen_metric = chosen_metric
         self.threshold = threshold
         self.compare = compare
         self.consumer_topic = 'fogverse-commands'
@@ -148,7 +150,6 @@ class MyMasterCommandListener(Consumer):
         return json.loads(data)
 
     async def handle_local_deployment(self, message):
-        self.logger.std_log('Deploying to local')
         image = message['image']
         env = message['env']
         scheme = env['scheme']
@@ -171,7 +172,6 @@ class MyMasterCommandListener(Consumer):
         await shell.wait()
 
     async def handle_cloud_deployment(self, message):
-        self.logger.std_log('Deploying to cloud')
         image = message['image']
         env = message['env']
         scheme = env['scheme']
@@ -201,19 +201,24 @@ class MyMasterCommandListener(Consumer):
 
     async def handle_request_deploy(self, message):
         app_id = message['app_id']
-        metric = None
         async with self.profiling_data.lock:
             if self.profiling_data.data.get(app_id, {})\
                                   .get('status') == FOGV_STATUS_RUNNING:
                 return
 
+        metric = None
         async with self.metric_data.lock:
-            metric = self.metric_data.data.get(self.chosen_metric)
+            metric = self.metric_data.data.get(('average framerate',
+                                                FOGV_STATUS_RUN_IN_LOCAL))
+        if isinstance(metric, list):
+            metric = metric[2]
         if metric is None or np.isnan(metric) or \
                 self.compare(metric, self.threshold):
+            self.logger.std_log('Deploying %s to local', app_id)
             await self.handle_local_deployment(message)
             where = FOGV_STATUS_RUN_IN_LOCAL
         else:
+            self.logger.std_log('Deploying %s to cloud', app_id)
             await self.handle_cloud_deployment(message)
             where = FOGV_STATUS_RUN_IN_CLOUD
 
@@ -261,16 +266,14 @@ async def main():
     profile_listener = MyMasterProfileListener(profiling_data)
 
     threshold = int(sys.argv[1])
-    chosen_metric = 'framerate (fps)'
     compare = operator.gt
     profiler = MyMasterProfiler(profiling_data, metric_data,
-                                chosen_metric, threshold)
+                                threshold)
     command_listener = MyMasterCommandListener(profiling_data,
                                                metric_data,
-                                               chosen_metric,
                                                threshold,
                                                compare=compare)
-    manager = Manager()
+    manager = Manager(component_id='master')
     await manager.run_components([profile_listener, profiler, command_listener])
 
 if __name__ == '__main__':
