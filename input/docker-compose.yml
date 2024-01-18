@@ -13,4 +13,3 @@ services:
     working_dir: /workplace/fogverse-app
     command: ['producer.py']
     env_file: .docker-compose.env
-    network_mode: host

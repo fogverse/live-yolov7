@@ -194,4 +194,6 @@ temp/
 *.pt
 *.mp4
 analysis
+analysis-offloading
 analysis*.tar*
+cloud.sh
